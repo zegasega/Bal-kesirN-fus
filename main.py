@@ -3,9 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 import numpy as np
-import folium
-from folium.plugins import MarkerCluster
-from streamlit_folium import folium_static
 
 file_path = 'merkez.xls'
 xls = pd.ExcelFile(file_path)
