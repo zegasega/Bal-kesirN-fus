@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 import numpy as np
+import folium
+from streamlit_folium import st_folium
 
 # Set the page layout to wide
 st.set_page_config(layout="wide")
@@ -12,7 +14,7 @@ file_path = 'merkez.xls'
 xls = pd.ExcelFile(file_path)
 df = pd.read_excel(xls, xls.sheet_names[0])
 
-st.title("Merkez Mahalle Nüfus Analizi")
+
 
 # Sidebar for selecting the neighborhood
 mahalleler = df['Mahalle'].unique()
@@ -24,9 +26,27 @@ mahalle_df = df[df['Mahalle'] == selected_mahalle]
 mahalle_df['Nüfus Artış Oranı (%)'] = mahalle_df['nufus'].pct_change() * 100
 
 # Layout for population analysis page
-page = st.sidebar.selectbox("Görünüm Seçin", ("Nüfus Analizi", "Nüfus Dinamikleri Raporu"))
+page = st.sidebar.selectbox("Sayfa Seçin", ("Nüfus Analizi", "Nüfus Dinamikleri Raporu", "Balıkesir Haritası"))
+
+if page == "Balıkesir Haritası":
+    st.title("Balıkesir Haritası")
+
+    # Center the map on Balıkesir
+    map_center = [39.6484, 27.8826]  # Coordinates for Balıkesir, Turkey
+    m = folium.Map(location=map_center, zoom_start=14)
+
+    # Add a marker for Balıkesir city center
+    folium.Marker(
+        location=map_center,
+        popup="Balıkesir",
+        icon=folium.Icon(icon="info-sign")
+    ).add_to(m)
+
+    # Render the map in Streamlit
+    st_folium(m, width=1600, height=800)
 
 if page == "Nüfus Analizi":
+    st.title("Merkez Mahalle Nüfus Analizi")
     st.subheader(f"{selected_mahalle} Mahallesinin Nüfus Grafiği ve Analizi")
 
     col1, col2, col3 = st.columns(3)
@@ -87,12 +107,19 @@ elif page == "Nüfus Dinamikleri Raporu":
     - **Çevresel Faktörler**: Doğal afetler ve çevresel değişimler, bölgenin yaşanabilirliğini azaltarak nüfus azalmasına neden olabilir.
     """)
 
-    st.image('img4.png', caption='2007-2023 Nüfus Değişim Tablosu', use_column_width=True)
+    st.image('img4.png', caption='2007-2023 Nüfus Değişim Tablosu', width=800)
 
     st.markdown("""
-    Nüfus artışının büyük şehirlere yönelmesi, özellikle gelişmekte olan ülkelerde yaygın bir olgudur. Kırsal kesimden büyük şehirlere olan göçlerin artması, büyük şehirlerin nüfusunun hızla artmasına neden olur. Bu durum, iş olanakları, eğitim ve sağlık hizmetleri gibi faktörlerin etkisiyle gerçekleşir. İnsanlar, daha iyi iş imkanları, daha iyi eğitim ve yaşam koşulları gibi sebeplerle büyük şehirlere yönelmektedirler.
+    Nüfus artışının büyük şehirlere yönelmesi, özellikle gelişmekte olan ülkelerde yaygın bir olgudur.
 
-    Büyük şehirlere olan nüfus artışı, şehirlerin altyapı ve hizmetlerini geliştirme ihtiyacını da beraberinde getirir. Bu durum, şehir planlaması, konut politikaları, ulaşım ağları gibi alanlarda büyük çaplı yatırımları gerektirir. Aynı zamanda, bu şehirlerdeki yoğun nüfus, çevresel ve sosyal sorunların da artmasına neden olabilir.
+    Kırsal kesimden büyük şehirlere olan göçlerin artması, büyük şehirlerin nüfusunun hızla artmasına neden olur.
+    Bu durum, iş olanakları, eğitim ve sağlık hizmetleri gibi faktörlerin etkisiyle gerçekleşir.
+
+    İnsanlar, daha iyi iş imkanları, daha iyi eğitim ve yaşam koşulları gibi sebeplerle büyük şehirlere yönelmektedirler.
+
+    Büyük şehirlere olan nüfus artışı, şehirlerin altyapı ve hizmetlerini geliştirme ihtiyacını da beraberinde getirir.
+    Bu durum, şehir planlaması, konut politikaları, ulaşım ağları gibi alanlarda büyük çaplı yatırımları gerektirir.
+    Aynı zamanda, bu şehirlerdeki yoğun nüfus, çevresel ve sosyal sorunların da artmasına neden olabilir.
 
     Sonuç olarak, nüfus artışının büyük şehirlere yönelmesi, hem şehirlerin hem de ülkenin genel kalkınması için önemli bir dinamiktir. Ancak bu süreç doğru şekilde yönetilmezse, olumsuz sonuçlar doğurabilir. Bu nedenle, şehir planlaması ve yönetimi, nüfus artışının sürdürülebilir bir şekilde yönetilmesi açısından kritik bir rol oynamaktadır.
 
@@ -105,4 +132,4 @@ elif page == "Nüfus Dinamikleri Raporu":
     Bu bağlamda, şehirlerin planlı ve sürdürülebilir bir şekilde büyümesi, hem mevcut hem de gelecekteki nesiller için daha iyi yaşam koşulları sağlar.
     """)
 
-    st.image('img2.png', caption='2007-2023 Nüfus Değişim Tablosu', use_column_width=True)
+    st.image('img2.png', caption='2007-2023 Nüfus Değişim Tablosu', width=800)
