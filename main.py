@@ -23,11 +23,9 @@ df = pd.read_excel(xls, xls.sheet_names[0])
 text_df = pd.read_csv('text_data.csv')
 stopwords_file_path = 'stopword.txt'  # Dosya yolu doğru mu kontrol edin
 
-try:
-    with open(stopwords_file_path, 'r', encoding='utf-8') as f:
-        turkish_stopwords = f.read().splitlines()
-except FileNotFoundError:
-    st.error(f"{stopwords_file_path} dosyası bulunamadı. Lütfen dosya yolunu kontrol edin.")
+
+with open(stopwords_file_path, 'r', encoding='utf-8') as f:
+    turkish_stopwords = f.read().splitlines()
 
 
 # Sidebar for selecting the neighborhood
