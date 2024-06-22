@@ -5,6 +5,13 @@ from sklearn.linear_model import LinearRegression
 import numpy as np
 import folium
 from streamlit_folium import st_folium
+import nltk
+from nltk.corpus import stopwords
+import string
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
 
 # Set the page layout to wide
 st.set_page_config(layout="wide")
@@ -13,7 +20,7 @@ st.set_page_config(layout="wide")
 file_path = 'merkez.xls'
 xls = pd.ExcelFile(file_path)
 df = pd.read_excel(xls, xls.sheet_names[0])
-
+text_df = pd.read_csv('text_data.csv')
 
 
 # Sidebar for selecting the neighborhood
@@ -26,7 +33,66 @@ mahalle_df = df[df['Mahalle'] == selected_mahalle]
 mahalle_df['Nüfus Artış Oranı (%)'] = mahalle_df['nufus'].pct_change() * 100
 
 # Layout for population analysis page
-page = st.sidebar.selectbox("Sayfa Seçin", ("Nüfus Analizi", "Nüfus Dinamikleri Raporu", "Balıkesir Haritası"))
+page = st.sidebar.selectbox("Sayfa Seçin", ("Nüfus Analizi", "Nüfus Dinamikleri Raporu", "Balıkesir Haritası","Text Classification"))
+
+if page == "Text Classification":
+    if page == "Text Classification":
+        st.title("Metin Sınıflandırma Uygulaması")
+
+        # Stopword listesini indirme
+        nltk.download('stopwords')
+        turkish_stopwords = stopwords.words('turkish')
+
+
+        # Stopword'leri temizleme fonksiyonu
+        def remove_stopwords(text):
+            if pd.isna(text):
+                return ''
+            tokens = text.split()
+            tokens = [word for word in tokens if word.lower() not in turkish_stopwords]
+            tokens = [word for word in tokens if word not in string.punctuation]
+            return ' '.join(tokens)
+
+
+        # Veriyi temizleme
+        text_df['cleaned_text'] = text_df['text'].apply(remove_stopwords)
+
+        # Gerekli sütunları seçme
+        text_df = text_df[['category', 'cleaned_text']]
+        text_df = text_df.rename(columns={'category': 'label', 'cleaned_text': 'text'})
+
+        # Eğitim ve test veri setlerini bölme
+        train_df, test_df = train_test_split(text_df, test_size=0.2, random_state=42)
+
+        # Metin vektörizasyonu için CountVectorizer kullanma
+        vectorizer = CountVectorizer()
+        X_train = vectorizer.fit_transform(train_df['text'])
+        y_train = train_df['label']
+
+        X_test = vectorizer.transform(test_df['text'])
+        y_test = test_df['label']
+
+        # Naive Bayes modelini eğitme
+        nb_classifier = MultinomialNB()
+        nb_classifier.fit(X_train, y_train)
+
+        # Kullanıcıdan metin girişi alma
+        user_input = st.text_area("Bir metin girin:", "",height=200)
+        if user_input:
+            # Girilen metni vektörize etme
+            user_input_vectorized = vectorizer.transform([user_input])
+
+            # Tahmin yapma
+            predicted_label = nb_classifier.predict(user_input_vectorized)[0]
+
+            st.write(f"Tahmin edilen etiket: {predicted_label}")
+
+        # Model performansını gösterme
+        if st.checkbox("Model Performansını Göster"):
+            y_pred = nb_classifier.predict(X_test)
+            st.text("Sınıflandırma Raporu:")
+            st.text(classification_report(y_test, y_pred))
+
 
 if page == "Balıkesir Haritası":
     st.title("Balıkesir Haritası")
