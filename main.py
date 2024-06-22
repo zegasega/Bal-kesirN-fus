@@ -22,8 +22,9 @@ xls = pd.ExcelFile(file_path)
 df = pd.read_excel(xls, xls.sheet_names[0])
 text_df = pd.read_csv('text_data.csv')
 # Stopword listesini indirme
-nltk.download('stopwords')
-turkish_stopwords = stopwords.words('turkish')
+# Load the stopwords from a file
+with open('stopwords.txt', 'r', encoding='utf-8') as f:
+    turkish_stopwords = f.read().splitlines()
 
 # Sidebar for selecting the neighborhood
 mahalleler = df['Mahalle'].unique()
@@ -38,61 +39,56 @@ mahalle_df['Nüfus Artış Oranı (%)'] = mahalle_df['nufus'].pct_change() * 100
 page = st.sidebar.selectbox("Sayfa Seçin", ("Nüfus Analizi", "Nüfus Dinamikleri Raporu", "Balıkesir Haritası","Text Classification"))
 
 if page == "Text Classification":
+    st.title("Metin Sınıflandırma Uygulaması")
 
-        st.title("Metin Sınıflandırma Uygulaması")
+    # Stopword'leri temizleme fonksiyonu
+    def remove_stopwords(text):
+        if pd.isna(text):
+            return ''
+        tokens = text.split()
+        tokens = [word for word in tokens if word.lower() not in turkish_stopwords]
+        tokens = [word for word in tokens if word not in string.punctuation]
+        return ' '.join(tokens)
 
+    # Veriyi temizleme
+    text_df['cleaned_text'] = text_df['text'].apply(remove_stopwords)
 
+    # Gerekli sütunları seçme
+    text_df = text_df[['category', 'cleaned_text']]
+    text_df = text_df.rename(columns={'category': 'label', 'cleaned_text': 'text'})
 
+    # Eğitim ve test veri setlerini bölme
+    train_df, test_df = train_test_split(text_df, test_size=0.2, random_state=42)
 
-        # Stopword'leri temizleme fonksiyonu
-        def remove_stopwords(text):
-            if pd.isna(text):
-                return ''
-            tokens = text.split()
-            tokens = [word for word in tokens if word.lower() not in turkish_stopwords]
-            tokens = [word for word in tokens if word not in string.punctuation]
-            return ' '.join(tokens)
+    # Metin vektörizasyonu için CountVectorizer kullanma
+    vectorizer = CountVectorizer()
+    X_train = vectorizer.fit_transform(train_df['text'])
+    y_train = train_df['label']
 
+    X_test = vectorizer.transform(test_df['text'])
+    y_test = test_df['label']
 
-        # Veriyi temizleme
-        text_df['cleaned_text'] = text_df['text'].apply(remove_stopwords)
+    # Naive Bayes modelini eğitme
+    nb_classifier = MultinomialNB()
+    nb_classifier.fit(X_train, y_train)
 
-        # Gerekli sütunları seçme
-        text_df = text_df[['category', 'cleaned_text']]
-        text_df = text_df.rename(columns={'category': 'label', 'cleaned_text': 'text'})
+    # Kullanıcıdan metin girişi alma
+    user_input = st.text_area("Bir metin girin:", "")
 
-        # Eğitim ve test veri setlerini bölme
-        train_df, test_df = train_test_split(text_df, test_size=0.2, random_state=42)
+    if user_input:
+        # Girilen metni vektörize etme
+        user_input_vectorized = vectorizer.transform([user_input])
 
-        # Metin vektörizasyonu için CountVectorizer kullanma
-        vectorizer = CountVectorizer()
-        X_train = vectorizer.fit_transform(train_df['text'])
-        y_train = train_df['label']
+        # Tahmin yapma
+        predicted_label = nb_classifier.predict(user_input_vectorized)[0]
 
-        X_test = vectorizer.transform(test_df['text'])
-        y_test = test_df['label']
+        st.write(f"Tahmin edilen etiket: {predicted_label}")
 
-        # Naive Bayes modelini eğitme
-        nb_classifier = MultinomialNB()
-        nb_classifier.fit(X_train, y_train)
-
-        # Kullanıcıdan metin girişi alma
-        user_input = st.text_area("Bir metin girin:", "",height=200)
-        if user_input:
-            # Girilen metni vektörize etme
-            user_input_vectorized = vectorizer.transform([user_input])
-
-            # Tahmin yapma
-            predicted_label = nb_classifier.predict(user_input_vectorized)[0]
-
-            st.write(f"Tahmin edilen etiket: {predicted_label}")
-
-        # Model performansını gösterme
-        if st.checkbox("Model Performansını Göster"):
-            y_pred = nb_classifier.predict(X_test)
-            st.text("Sınıflandırma Raporu:")
-            st.text(classification_report(y_test, y_pred))
-
+    # Model performansını gösterme
+    if st.checkbox("Model Performansını Göster"):
+        y_pred = nb_classifier.predict(X_test)
+        st.text("Sınıflandırma Raporu:")
+        st.text(classification_report(y_test, y_pred))
 
 if page == "Balıkesir Haritası":
     st.title("Balıkesir Haritası")
