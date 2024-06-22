@@ -5,4 +5,5 @@ scikit-learn
 numpy
 xlrd
 folium
-streamlit_folium 
+streamlit_folium
+nltk
