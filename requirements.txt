@@ -4,3 +4,5 @@ matplotlib
 scikit-learn
 numpy
 xlrd
+folium
+streamlit_folium 
