@@ -36,7 +36,7 @@ mahalle_df['Nüfus Artış Oranı (%)'] = mahalle_df['nufus'].pct_change() * 100
 page = st.sidebar.selectbox("Sayfa Seçin", ("Nüfus Analizi", "Nüfus Dinamikleri Raporu", "Balıkesir Haritası","Text Classification"))
 
 if page == "Text Classification":
-    if page == "Text Classification":
+
         st.title("Metin Sınıflandırma Uygulaması")
 
         # Stopword listesini indirme
