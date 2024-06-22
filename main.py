@@ -21,7 +21,9 @@ file_path = 'merkez.xls'
 xls = pd.ExcelFile(file_path)
 df = pd.read_excel(xls, xls.sheet_names[0])
 text_df = pd.read_csv('text_data.csv')
-
+# Stopword listesini indirme
+nltk.download('stopwords')
+turkish_stopwords = stopwords.words('turkish')
 
 # Sidebar for selecting the neighborhood
 mahalleler = df['Mahalle'].unique()
@@ -39,9 +41,7 @@ if page == "Text Classification":
 
         st.title("Metin Sınıflandırma Uygulaması")
 
-        # Stopword listesini indirme
-        nltk.download('stopwords')
-        turkish_stopwords = stopwords.words('turkish')
+
 
 
         # Stopword'leri temizleme fonksiyonu
