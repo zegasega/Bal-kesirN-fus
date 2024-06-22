@@ -23,7 +23,7 @@ df = pd.read_excel(xls, xls.sheet_names[0])
 text_df = pd.read_csv('text_data.csv')
 # Stopword listesini indirme
 # Load the stopwords from a file
-with open('stopwords.txt', 'r', encoding='utf-8') as f:
+with open('stopword.txt', 'r', encoding='utf-8') as f:
     turkish_stopwords = f.read().splitlines()
 
 # Sidebar for selecting the neighborhood
